@@ -2,10 +2,12 @@ package msovet.vaadin.chat;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.springframework.stereotype.Component;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+@Component
 public class Storage {
     @Getter
     private Queue<ChatMessage> messages = new ConcurrentLinkedQueue<>();
