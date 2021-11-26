@@ -1,6 +1,7 @@
 package msovet.vaadin.chat;
 
 import com.vaadin.flow.component.Html;
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H3;
@@ -27,8 +28,16 @@ public class MainView extends VerticalLayout {
                 new H3("Vaadin chat"),
                 grid,
                 field,
-                new Button("Send Message!")
+                new Button("Send Message!") {
+                    {
+                        addClickListener(click -> {
+                            storage.addRecord("",field.getValue());
+                            field.clear();
+                        });
 
+                        addClickShortcut(Key.ENTER);
+                    }
+                }
         );
     }
 }
