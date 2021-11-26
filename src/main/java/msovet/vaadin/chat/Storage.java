@@ -19,6 +19,8 @@ public class Storage {
 
     private ComponentEventBus eventBus = new ComponentEventBus(new Div());
 
+
+
     public static class ChatEvent extends ComponentEvent<Div> {
         public ChatEvent() {
             super(new Div(), false);
@@ -39,6 +41,11 @@ public class Storage {
 
     public Registration attachListener(ComponentEventListener<ChatEvent> messageListener) {
         return eventBus.addListener(ChatEvent.class, messageListener);
+    }
+
+    public void addRecordJoined(String user) {
+        messages.add(new ChatMessage("",user));
+        eventBus.fireEvent(new ChatEvent());
     }
 
     public int size() {

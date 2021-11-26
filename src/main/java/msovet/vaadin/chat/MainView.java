@@ -20,9 +20,40 @@ public class MainView extends VerticalLayout {
     private final Storage storage;
     private Registration registration;
     Grid<Storage.ChatMessage> grid;
+    private VerticalLayout chat;
+    private VerticalLayout login;
+    private String user = "";
 
     public MainView(Storage storage) {
         this.storage = storage;
+        buildLogin();
+        buildChat();
+    }
+
+    private void buildLogin() {
+        login = new VerticalLayout() {{
+            TextField field = new TextField();
+            field.setPlaceholder("Please, introduce yourself:");
+            add(
+                    field,
+                    new Button("Login") {{
+                        addClickListener(click -> {
+                            login.setVisible(false);
+                            chat.setVisible(true);
+                            user = field.getValue();
+                            storage.addRecordJoined(user);
+                        });
+                        addClickShortcut(Key.ENTER);
+                    }}
+            );
+        }};
+        add(login);
+    }
+
+    private void buildChat() {
+        chat = new VerticalLayout();
+        add(chat);
+        chat.setVisible(false);
 
         grid = new Grid<>();
         grid.setItems(storage.getMessages());
@@ -30,7 +61,8 @@ public class MainView extends VerticalLayout {
                 message -> new Html(renderRow(message))))
                 .setAutoWidth(true);
         TextField field = new TextField();
-        add(
+
+        chat.add(
                 new H3("Vaadin chat"),
                 grid,
                 new HorizontalLayout() {{
@@ -39,7 +71,7 @@ public class MainView extends VerticalLayout {
                             new Button("Send Message!") {
                                 {
                                     addClickListener(click -> {
-                                        storage.addRecord("", field.getValue());
+                                        storage.addRecord(user, field.getValue());
                                         field.clear();
                                     });
 
@@ -52,15 +84,19 @@ public class MainView extends VerticalLayout {
     }
 
     private String renderRow(Storage.ChatMessage message) {
-        return Processor.process(String.format("**%s**:%s", message.getName(), message.getMessage()));
+        if (message.getName().isEmpty()) {
+            return Processor.process(String.format("_User **%s** is just joined to the chat!_", message.getMessage()));
+        } else {
+            return Processor.process(String.format("**%s**:%s", message.getName(), message.getMessage()));
+        }
     }
 
     public void onMessage(Storage.ChatEvent event) {
         if (getUI().isPresent()) {
             UI ui = getUI().get();
             ui.getSession().lock();
+            ui.beforeClientResponse(grid, ctx -> grid.scrollToEnd());
             ui.access(() -> grid.getDataProvider().refreshAll());
-            ui.getPage().executeJs("$0._scrollToIndex($1)", grid, storage.size());
             ui.getSession().unlock();
         }
     }
